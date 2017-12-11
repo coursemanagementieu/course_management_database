@@ -24,6 +24,7 @@ def create_entity_tables():
     # Section table declared
     db_cursor.execute("""CREATE TABLE IF NOT EXISTS section(
                          ID integer PRIMARY KEY,
+                         name text,
                          classroom text,
                          hour text,
                          day text
@@ -66,16 +67,13 @@ def create_entity_tables():
 def create_relation_tables():
     # Semester - Course relationship
     db_cursor.execute("""CREATE TABLE IF NOT EXISTS courseIn(
-                         semesterID text,
+                         semesterID text, 
                          courseID integer,
-                         FOREIGN KEY (semesterID)
-                         REFERENCES semester(name)
-                         ON UPDATE CASCADE 
+                         FOREIGN KEY (semesterID) REFERENCES semester(name) ON UPDATE CASCADE
                          ON DELETE CASCADE,
-                         FOREIGN KEY (courseID) 
-                         REFERENCES course(ID) 
+                         FOREIGN KEY (courseID) REFERENCES course(ID) 
                          ON UPDATE CASCADE 
-                         ON DELETE CASCADE                     
+                         ON DELETE CASCADE
                          )""")
     # Semester - Course - Section relationship
     db_cursor.execute("""CREATE TABLE IF NOT EXISTS sectionIn(
