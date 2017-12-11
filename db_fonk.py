@@ -10,7 +10,7 @@ def save_changes():
 
 
 # Manage semester table
-def insert_semester(name, week=None):
+def insert_semester(name, week="Empty"):
     try:
         db_cursor.execute("""INSERT INTO semester VALUES(?,?)""", (name, week))
     except IntegrityError:
