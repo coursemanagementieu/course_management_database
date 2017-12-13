@@ -1,6 +1,7 @@
 from sqlite3 import *
 # connection supplied
 connectDatabase = connect("cms.db")
+connectDatabase.execute('pragma foreign_keys=ON')
 db_cursor = connectDatabase.cursor()
 
 
@@ -29,10 +30,21 @@ def select_all_semester():
     print(row)
 
 
+def edit_semester(name, week):
+    db_cursor.execute("""SELECT week FROM semester WHERE name=?""", (name,))
+    row = db_cursor.fetchone()
+
+    if row is not row[0]:
+        db_cursor.execute("""UPDATE semester SET week=? WHERE name=?""", (week, name))
+
+
+def delete_semester(name):
+    db_cursor.execute("""DELETE FROM semester WHERE name=?""", (name,))
+
+
 # ---Manage course table---
 # Add new course in course table and return with it's rowid
 def insert_course(name="Empty", code="Empty", book="Empty", refbook="Empty", syll="Empty"):
-
     # If there is match then ignore insert, if not then add new line with given attributes
     row = find_course_rowid(name, code, book, refbook, syll)
     if row is None:
@@ -64,6 +76,26 @@ def select_course_rowid(semID, code):
     return row[0]
 
 
+def edit_course(ID, name="Empty", code="Empty", book="Empty", refbook="Empty", syll="Empty"):
+    db_cursor.execute("""SELECT name, code, book, referenceBook, syllabusLink FROM course WHERE rowid=?""", str(ID))
+    row = db_cursor.fetchone()
+
+    if name is not row[0]:
+        db_cursor.execute("""UPDATE course SET name=? WHERE rowid=?""", (name, ID))
+
+    if code is not row[1]:
+        db_cursor.execute("""UPDATE course SET code=? WHERE rowid=?""", (code, ID))
+
+    if book is not row[2]:
+        db_cursor.execute("""UPDATE course SET book=? WHERE rowid=?""", (book, ID))
+
+    if refbook is not row[3]:
+        db_cursor.execute("""UPDATE course SET referenceBook=? WHERE rowid=?""", (refbook, ID))
+
+    if syll is not row[4]:
+        db_cursor.execute("""UPDATE course SET syllabusLink=? WHERE rowid=?""", (syll, ID))
+
+
 # Select all of the information of line which line ID is matched with given ID from course table
 def select_specific_course(ID):
     db_cursor.execute("""SELECT * FROM course WHERE ID=?""", str(ID))
@@ -77,8 +109,17 @@ def select_all_course():
     print(row)
 
 
+def delete_course(ID):
+    db_cursor.execute("""DELETE FROM course WHERE rowid=?""", str(ID))
+
+
 # ---Manage section table---
 def insert_section(name="Empty", classroom="Empty", hour="Empty", day="Empty"):
+    # db_cursor.execute("""SELECT * FROM section WHERE name=?""", (name,))
+    # duplicateName = db_cursor.fetchone()
+    # if duplicateName is not None:
+    #     print("Can not created! You have already this name.")
+    #     return 0
     row = find_section_rowid(name, classroom, hour, day)
     if row is None:
         db_cursor.execute("""INSERT INTO section VALUES(?,?,?,?,?)""", (None, name, classroom, hour, day))
@@ -107,6 +148,23 @@ def select_section_rowid(semID, cID, name):
     return row[0]
 
 
+def edit_section(ID, name="Empty", classroom="Empty", hour="Empty", day="Empty"):
+    db_cursor.execute("""SELECT name, classroom, hour, day FROM section WHERE rowid=?""", str(ID))
+    row = db_cursor.fetchone()
+
+    if name is not row[0]:
+        db_cursor.execute("""UPDATE section SET name=? WHERE rowid=?""", (name, ID))
+
+    if classroom is not row[1]:
+        db_cursor.execute("""UPDATE section SET classroom=? WHERE rowid=?""", (classroom, ID))
+
+    if hour is not row[2]:
+        db_cursor.execute("""UPDATE section SET hour=? WHERE rowid=?""", (hour, ID))
+
+    if day is not row[3]:
+        db_cursor.execute("""UPDATE section SET day=? WHERE rowid=?""", (day, ID))
+
+
 def select_specific_section(ID):
     db_cursor.execute("""SELECT * FROM section WHERE rowid=?""", str(ID))
     print(db_cursor.fetchone())
@@ -118,9 +176,20 @@ def select_all_section():
     print(row)
 
 
+def delete_section(ID):
+    db_cursor.execute("""DELETE FROM section WHERE rowid=?""", str(ID))
+
+
 # ---Manage announcement table---
 def insert_announcement(date="Empty", head="Empty", announcement="Empty"):
-    row = find_announcement_rowid(date,head,announcement)
+    # # Since we will find announcement rowid thanks to semesterID, courseID and head of it, one tuple should be unique.
+    # # Since semesterID and courseID can be same, if semesterID and courseID is same then head shall be different
+    # db_cursor.execute("""SELECT * FROM announcement WHERE head=?""", (head,))
+    # duplicateHead = db_cursor.fetchone()
+    # if duplicateHead is not None:
+    #     print("You cannot create this announcement, because you had already using same head.")
+    #     return 0
+    row = find_announcement_rowid(date, head, announcement)
     if row is None:
         db_cursor.execute("""INSERT INTO announcement VALUES(?,?,?,?)""", (None, date, head, announcement))
         row = find_announcement_rowid(date,head,announcement)
@@ -147,6 +216,20 @@ def select_announcement_rowid(semID, cID, head):
     return row[0]
 
 
+def edit_announcement(ID, date="Empty", head="Empty", announcement="Empty"):
+    db_cursor.execute("""SELECT date, head, announcement FROM announcement WHERE rowid=?""", str(ID))
+    row = db_cursor.fetchone()
+
+    if date is not row[0]:
+        db_cursor.execute("""UPDATE announcement SET date=? WHERE rowid=?""", (date, ID))
+
+    if head is not row[1]:
+        db_cursor.execute("""UPDATE announcement SET head=? WHERE rowid=?""", (head, ID))
+
+    if announcement is not row[2]:
+        db_cursor.execute("""UPDATE announcement SET announcement=? WHERE rowid=?""", (announcement, ID))
+
+
 def select_specific_announcement(ID):
     db_cursor.execute("""SELECT * FROM announcement WHERE rowid=?""", str(ID))
     print(db_cursor.fetchone())
@@ -156,6 +239,10 @@ def select_all_announcement():
     db_cursor.execute("""SELECT * FROM announcement""")
     row = db_cursor.fetchall()
     print(row)
+
+
+def delete_announcement(ID):
+    db_cursor.execute("""DELETE FROM announcement WHERE rowid=?""", str(ID))
 
 
 # --Manage subject table---
@@ -186,6 +273,20 @@ def select_subject_rowid(semID, cID, week):
     return row[0]
 
 
+def edit_subject(ID, sub="Empty", ref="Empty", week="Empty"):
+    db_cursor.execute("""SELECT subject, reference, week FROM subject WHERE rowid=?""", str(ID))
+    row = db_cursor.fetchone()
+
+    if sub is not row[0]:
+        db_cursor.execute("""UPDATE subject SET subject=? WHERE rowid=?""", (sub, ID))
+
+    if ref is not row[1]:
+        db_cursor.execute("""UPDATE subject SET reference=? WHERE rowid=?""", (ref, ID))
+
+    if week is not row[2]:
+        db_cursor.execute("""UPDATE subject SET week=? WHERE rowid=?""", (week, ID))
+
+
 def select_specific_subject(ID):
     db_cursor.execute("""SELECT * FROM subject WHERE rowid=?""", str(ID))
     print(db_cursor.fetchone())
@@ -195,6 +296,10 @@ def select_all_subject():
     db_cursor.execute("""SELECT * FROM subject""")
     row = db_cursor.fetchall()
     print(row)
+
+
+def delete_subject(ID):
+    db_cursor.execute("""DELETE FROM subject WHERE rowid=?""", str(ID))
 
 
 # ---Manage evaluation table---
@@ -225,6 +330,17 @@ def select_evaluiaton_rowid(semID, cID, name):
     return row[0]
 
 
+def edit_evaluation(ID, name="Empty", percentage="Empty"):
+    db_cursor.execute("""SELECT name, percentage FROM evaluation WHERE rowid=?""", str(ID))
+    row = db_cursor.fetchone()
+
+    if name is not row[0]:
+        db_cursor.execute("""UPDATE evaluation SET name=? WHERE rowid=?""", (name, ID))
+
+    if percentage is not row[1]:
+        db_cursor.execute("""UPDATE evaluation SET percentage=? WHERE rowid=?""", (percentage, ID))
+
+
 def select_specific_evaluation(ID):
     db_cursor.execute("""SELECT * FROM evaluation WHERE rowid=?""", str(ID))
     print(db_cursor.fetchone())
@@ -235,6 +351,9 @@ def select_all_evaluation():
     row = db_cursor.fetchall()
     print(row)
 
+
+def delete_evaluation(ID):
+    db_cursor.execute("""DELETE FROM evaluation WHERE rowid=?""", str(ID))
 
 # ---Manage student table---
 def insert_student(ID, name="Empty"):
@@ -254,6 +373,18 @@ def select_all_student():
     db_cursor.execute("""SELECT * FROM student""")
     row = db_cursor.fetchall()
     print(row)
+
+
+def edit_student(ID, name="Empty"):
+    db_cursor.execute("""SELECT name FROM student WHERE ID=?""", (ID,))
+    row = db_cursor.fetchone()
+
+    if name is not row[0]:
+        db_cursor.execute("""UPDATE student SET name=? WHERE ID=?""", (name, ID))
+
+
+def delete_student(ID):
+    db_cursor.execute("""DELETE FROM student WHERE ID=?""", (ID,))
 
 
 # ---Manage note table---
@@ -284,6 +415,20 @@ def select_note_rowid(semID, cID, stuID, head):
     return row[0]
 
 
+def edit_note(ID, head="Empty", note="Empty", date="Empty"):
+    db_cursor.execute("""SELECT head, note, date FROM note WHERE rowid=?""", str(ID))
+    row = db_cursor.fetchone()
+
+    if head is not row[0]:
+        db_cursor.execute("""UPDATE note SET head=? WHERE rowid=?""", (head, ID))
+
+    if note is not row[1]:
+        db_cursor.execute("""UPDATE note SET note=? WHERE rowid=?""", (note, ID))
+
+    if date is not row[2]:
+        db_cursor.execute("""UPDATE note SET date=? WHERE rowid=?""", (date, ID))
+
+
 def select_specific_note(ID):
     db_cursor.execute("""SELECT * FROM note WHERE rowid=?""", str(ID))
     print(db_cursor.fetchone())
@@ -293,6 +438,10 @@ def select_all_note():
     db_cursor.execute("""SELECT * FROM note""")
     row = db_cursor.fetchall()
     print(row)
+
+
+def delete_note(ID):
+    db_cursor.execute("""DELETE FROM note WHERE rowid=?""", str(ID))
 
 
 # Starting manage relation tables
@@ -418,6 +567,16 @@ def insert_student_evaluationin(semID, cID, evaID, stuID, evaluation):
                           (semID, cID, evaID, stuID, evaluation))
     else:
         print("Evaluation have already be given")
+
+
+def edit_studentEvaluation_in(semID, cID, evaID, stuID, evaluation):
+    db_cursor.execute("""SELECT evaluation FROM studentEvaluationIn WHERE semesterID=? AND courseID=? AND
+                         evaluationID=? AND studentID=?""", (semID, cID, evaID, stuID))
+    row = db_cursor.fetchone()
+
+    if evaluation is not row[0]:
+        db_cursor.execute("""UPDATE studentEvaluationIn SET evaluation=? WHERE semesterID=? AND courseID=? AND
+                         evaluationID=? AND studentID=?""", (evaluation, semID, cID, evaID, stuID))
 
 
 def select_studentEvaluation_in(semID, cID, evaID, stuID):
